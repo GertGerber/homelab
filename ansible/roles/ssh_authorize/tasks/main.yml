@@ -1,0 +1,20 @@
+---
+- name: Assert localhost public key is available
+  ansible.builtin.assert:
+    that:
+      - hostvars['localhost']['ssh_client_public_key'] is defined
+    fail_msg: "ssh_client_public_key not found. Run the localhost play (ssh_client) first."
+
+- name: Ensure target user exists (noop if already present)
+  become: true
+  ansible.builtin.user:
+    name: "{{ ssh_authorize_target_user }}"
+    state: present
+
+- name: Authorize localhost public key on remote host
+  become: true
+  ansible.builtin.authorized_key:
+    user: "{{ ssh_authorize_target_user }}"
+    state: present
+    manage_dir: true
+    key: "{{ hostvars['localhost']['ssh_client_public_key'] }}"

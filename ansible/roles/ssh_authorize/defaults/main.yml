@@ -1,0 +1,1 @@
+ssh_authorize_target_user: "{{ ansible_user | default('root') }}"

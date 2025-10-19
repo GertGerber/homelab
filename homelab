@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# File: dotfiles/homelab
+# Entrypoint to project
+
+set -Eeuo pipefail
+
+# ───────────────────────────────────────────────────────────────────────────────────────
+# ── Required by every file ─────────────────────────────────────────────────────────────
+# Always resolve env.sh relative to the *current* script file
+ENV_SH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/scripts/lib/env.sh"
+# If this script is deeper or elsewhere, adjust the ../ as needed.
+# Example for scripts/bin/*, ../lib is correct. For scripts/opt/*, ../lib is also correct.
+source "$ENV_SH"
+
+log_info "ROOT_DIR: ${ROOT_DIR}"
+log_info "SCRIPTS_DIR: ${SCRIPTS_DIR}"
+log_info "LIB_DIR: ${LIB_DIR}"
+log_info "MENUS_DIR: ${MENUS_DIR}"
+log_info "ANSIBLE_DIR: ${ANSIBLE_DIR}"
+log_info "PACKER_DIR: ${PACKER_DIR}"
+log_info "TERRAFORM_DIR: ${TERRAFORM_DIR}"
+
+
+# (Optional) turn on the standard traps when you want them:
+enable_standard_traps
+# ───────────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────────────
+
+# Call menu
+"${MENUS_DIR}/menu.sh"

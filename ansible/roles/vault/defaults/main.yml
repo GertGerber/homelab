@@ -1,0 +1,5 @@
+---
+# Variables
+vault_storage_path: "/opt/vault/data"
+vault_ui_enable: true
+vault_listen_address: "0.0.0.0"

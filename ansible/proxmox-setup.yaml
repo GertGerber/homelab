@@ -1,0 +1,10 @@
+---
+- name: Proxmox Initial Setup
+  hosts: proxmox
+  become: true
+  gather_facts: true
+  vars:
+    disable_subscription_nag=true
+    do_reboot=true
+  roles:
+    - proxmox

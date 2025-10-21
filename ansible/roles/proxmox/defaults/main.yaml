@@ -1,0 +1,95 @@
+# Feature toggles
+enable_repo_config: false
+enable_iommu: tfalse
+enable_gpu_passthrough: false
+enable_virtio_drivers: tfalse
+enable_network_config:  true
+enable_zfs_storage: false
+enable_api_token: true
+
+# Repository configuration
+proxmox_update_cache: false
+proxmox_upgrade: false
+proxmox_reboot: false
+
+# System files
+grub_file: "/etc/default/grub"
+modules_file: "/etc/modules"
+iommu_file: "/etc/modprobe.d/vfio_iommu_type1.conf"
+kvm_file: "/etc/modprobe.d/kvm.conf"
+vfio_file: "/etc/modprobe.d/vfio.conf"
+blacklist_file: "/etc/modprobe.d/blacklist.conf"
+
+# Common modules for both IOMMU and GPU passthrough
+vfio_modules:
+  - vfio
+  - vfio_iommu_type1
+  - vfio_pci
+  - vfio_virqfd
+
+# VirtIO drivers
+virtio_iso_path: "/var/lib/vz/template/iso"
+virtio_download_url: "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso"
+
+# API Token configuration
+enable_api_token: false
+api_token_user: "root@pam"
+api_token_name: "terraform"
+api_token_role: "Administrator"
+api_token_expiry: "0"  # 0 means no expiration
+api_token_comment: "API token for automation"
+
+# Network configuration
+enable_network_config: false
+enable_lacp: true
+bond_interfaces:
+  - name: "bond0"
+    slaves: ["enp5s0", "enp6s0"]
+    bond_mode: "802.3ad"
+    bond_xmit_hash_policy: "layer2+3"
+    bond_miimon: 100
+    comment: "LACP bond for network redundancy"
+
+network_bridges:
+  - name: vmbr0
+    interface: bond0
+    address: 192.168.88.250
+    netmask: 255.255.255.0
+    gateway: 192.168.88.1
+    comments: "Management Network and VM Network"
+  - name: vmbr1
+    interface: bond0
+    address: 10.10.10.1
+    netmask: 255.255.255.0
+    gateway: ""
+    comments: "Private Network for VMs"
+
+# Storage configuration
+enable_zfs_storage: false
+confirm_wipe: 'no'
+zfs_pool_name: "shared_pool"
+zfs_default_compression: "lz4"
+zfs_default_sync: "standard"
+zfs_default_recordsize: "128K"
+
+disks:
+  - /dev/sdb
+  - /dev/sdc
+
+# Datasets - only include properties you want to override from defaults
+datasets:
+  - name: "k8s_volumes"
+    extra_zfs_properties:
+      quota: "1.5T"
+  - name: "monitoring"
+    extra_zfs_properties:
+      quota: "600G"
+      recordsize: "256K"
+      sync: "disabled"
+  - name: "other"
+    extra_zfs_properties:
+      quota: "500G"
+  - name: "samba_share"
+    extra_zfs_properties:
+      quota: "300G"
+      recordsize: "1M"

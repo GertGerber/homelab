@@ -1,5 +1,0 @@
-ssh_client_packages: []  # filled by OS-specific vars files
-ssh_client_dir: "{{ lookup('env','HOME') + '/.ssh' }}"
-ssh_client_key_type: ed25519
-ssh_client_key_path: "{{ ssh_client_dir }}/id_ed25519"
-ssh_client_key_comment: "{{ lookup('env','USER') | default('local') }}@{{ ansible_hostname }}"

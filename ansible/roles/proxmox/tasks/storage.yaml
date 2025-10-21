@@ -1,0 +1,61 @@
+---
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name: zfsutils-linux
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Clean up existing ZFS setup
+  block:
+    - name: Check for existing ZFS pool
+      ansible.builtin.command: zpool list -H -o name {{ zfs_pool_name }}
+      register: pool_check
+      changed_when: false
+      failed_when: false
+
+    - name: Unmount and export existing pool
+      ansible.builtin.shell: |
+        zfs umount -f {{ zfs_pool_name }}/* 2>/dev/null || true
+        zfs umount -f {{ zfs_pool_name }} 2>/dev/null || true
+        zpool export -f {{ zfs_pool_name }} 2>/dev/null || true
+        rm -rf "/{{ zfs_pool_name }}" 2>/dev/null || true
+      when: pool_check.rc == 0
+      ignore_errors: true
+
+- name: Prepare disks
+  block:
+    - name: Wipe disks
+      ansible.builtin.shell: |
+        wipefs -a {{ item }} && sgdisk --zap-all {{ item }}
+      loop: "{{ disks }}"
+      when: confirm_wipe | default('no') == 'yes'
+      ignore_errors: true
+  
+- name: Create ZFS pool
+  ansible.builtin.command: >
+    zpool create -f {{ zfs_pool_name }} mirror {{ disks | join(' ') }}
+    -o ashift=12 -o autoexpand=on -o autotrim=on -o feature@zstd_compress=enabled
+  when: pool_check.rc != 0
+  register: pool_create
+
+- name: Create or update datasets
+  ansible.builtin.shell: |
+    if ! zfs list {{ zfs_pool_name }}/{{ item.name }} >/dev/null 2>&1; then
+      zfs create \
+        -o quota={{ item.extra_zfs_properties.quota }} \
+        -o compression={{ item.extra_zfs_properties.compression | default(zfs_default_compression) }} \
+        -o recordsize={{ item.extra_zfs_properties.recordsize | default(zfs_default_recordsize) }} \
+        -o sync={{ item.extra_zfs_properties.sync | default(zfs_default_sync) }} \
+        {{ zfs_pool_name }}/{{ item.name }}
+    else
+      zfs set \
+        quota={{ item.extra_zfs_properties.quota }} \
+        compression={{ item.extra_zfs_properties.compression | default(zfs_default_compression) }} \
+        recordsize={{ item.extra_zfs_properties.recordsize | default(zfs_default_recordsize) }} \
+        sync={{ item.extra_zfs_properties.sync | default(zfs_default_sync) }} \
+        {{ zfs_pool_name }}/{{ item.name }}
+    fi
+  loop: "{{ datasets }}"
+  register: dataset_creation
+  failed_when: false

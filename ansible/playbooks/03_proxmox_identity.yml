@@ -1,0 +1,8 @@
+---
+- name: Provision Proxmox identity (user/role/token) via SSH (keys only)
+  hosts: proxmox
+  gather_facts: false
+  become: true
+  roles:
+    - role: proxmox_identity_ssh
+  tags: [identity]

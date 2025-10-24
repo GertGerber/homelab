@@ -26,10 +26,20 @@ else
   pm_install ansible
 fi
 
+# install community.proxmox runtime deps into the ansible pipx venv
+# Ensure the ansible pipx venv has pip + proxmox deps
+ANSIBLE_PY="$(pipx environment --value PIPX_HOME 2>/dev/null || echo /opt/pipx)/venvs/ansible/bin/python"
+if [ -x "$ANSIBLE_PY" ]; then
+  "$ANSIBLE_PY" -m ensurepip --upgrade || true
+  "$ANSIBLE_PY" -m pip install -U proxmoxer requests || true
+fi
+
+
+
 if command -v ansible-galaxy >/dev/null 2>&1; then
   if [[ -f "${ETC_DIR}/ansible/requirements.yml" ]]; then
     log_info "Installing Ansible Galaxy requirements"
-    ansible-galaxy install -r "${ETC_DIR}/ansible/requirements.yml"
+    ansible-galaxy install -r "${ETC_DIR}/ansible/requirements.yml" --force
   else
     log_warn "No galaxy requirements file at ${ETC_DIR}/ansible/requirements.yml"
   fi

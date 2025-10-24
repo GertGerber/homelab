@@ -1,0 +1,22 @@
+---
+- name: Ensure SSH keypair exists on control node
+  community.crypto.openssh_keypair:
+    path: "{{ ssh_key_path }}"
+    type: "{{ ssh_key_type }}"
+    mode: "0600"
+
+- name: Push public key to each Proxmox node's authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ ssh_remote_user }}"
+    manage_dir: true
+    state: present
+    key: "{{ lookup('file', ssh_key_path ~ '.pub') }}"
+  delegate_to: "{{ item }}"
+  # become only if the target user isn’t root
+  become: "{{ ssh_remote_user != 'root' }}"
+  vars:
+    # force the delegated connection to use these creds for this task
+    ansible_user: "{{ ssh_remote_user }}"
+    ansible_password: "{{ (ssh_bootstrap_password | default('')) if (ssh_bootstrap_password is defined and (ssh_bootstrap_password | length) > 0) else omit }}"
+  loop: "{{ groups['proxmox'] | default([]) }}"
+  when: groups['proxmox'] | default([]) | length > 0

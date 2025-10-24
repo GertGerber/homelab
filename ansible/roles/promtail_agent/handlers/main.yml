@@ -1,9 +1,0 @@
-- name: Restart promtail
-  ansible.builtin.systemd:
-    name: promtail
-    state: restarted
-
-- name: Reload firewall
-  ansible.builtin.systemd:
-    name: firewall
-    state: restarted

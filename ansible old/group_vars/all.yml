@@ -1,0 +1,36 @@
+---
+# ===== SSH role =====
+ssh_key_path: "~/.ssh/proxmox_ansible"
+ssh_key_type: "ed25519"
+ssh_remote_user: "root"  # user on Proxmox nodes for authorized_keys push
+
+# ===== Proxmox role =====
+proxmox_host: "pve01"
+
+# Bootstrap authentication for creating user/role/token (initial admin)
+proxmox_api_user: "root@pam"
+proxmox_api_password: "{{ lookup('env', 'PVE_ROOT_PASSWORD') }}"
+proxmox_validate_certs: false
+
+# Service user that will own the API token
+pve_service_user: "ansible@pve"
+pve_service_user_password: "{{ lookup('env','PVE_SERVICE_USER_PASSWORD') }}"
+pve_service_user_email: "ansible@example.com"
+
+# Role/privileges (edit as needed)
+pve_role_name: "AnsibleProv"
+pve_role_privs:
+  - VM.Audit
+  - VM.PowerMgmt
+  - VM.Config.CDROM
+  - VM.Config.Memory
+  - VM.Config.Network
+  - VM.Config.Disk
+  - Datastore.Audit
+  - Datastore.AllocateSpace
+
+# Token config
+pve_token_id: "ansible"
+pve_token_privsep: true
+pve_acl_path: "/"
+pve_local_token_file: "./.proxmox_ansible_token"  # stored on control node

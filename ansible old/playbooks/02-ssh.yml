@@ -1,0 +1,14 @@
+---
+- name: SSH bootstrap (generate key locally, push to Proxmox nodes)
+  hosts: localhost
+  gather_facts: false
+
+  # Prompt always; user can just press Enter to skip
+  vars_prompt:
+    - name: ssh_bootstrap_password
+      prompt: "Proxmox password for pushing the key (leave blank to skip)"
+      private: yes
+      default: ""
+
+  roles:
+    - role: ssh

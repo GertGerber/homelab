@@ -1,0 +1,8 @@
+---
+local_bootstrap_venv_path: "{{ lookup('env','HOME') }}/.venvs/homelab"
+local_hashicorp_install: true
+local_use_nala: true
+local_packages_common: [git, curl, jq, unzip, ca-certificates, gnupg]
+local_extra_packages: []
+local_hashicorp_tools: [terraform, packer]
+local_python_packages: [proxmoxer, requests]

@@ -1,0 +1,4 @@
+---
+ssh_key_path: "~/.ssh/proxmox_ansible"
+ssh_key_type: "ed25519"
+ssh_remote_user: "root"

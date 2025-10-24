@@ -1,0 +1,4 @@
+---
+- import_playbook: 01_bootstrap_local.yml
+- import_playbook: 02_ssh_keys.yml
+- import_playbook: 03_proxmox_identity.yml

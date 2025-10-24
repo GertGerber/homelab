@@ -1,0 +1,68 @@
+---
+- name: Debian-family setup
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Install nala (optional) or update apt cache
+      ansible.builtin.apt:
+        name: "{{ 'nala' if local_use_nala else omit }}"
+        update_cache: true
+        state: present
+      become: true
+
+    - name: Install baseline packages
+      ansible.builtin.apt:
+        name: "{{ local_packages_common + local_extra_packages }}"
+        state: present
+      become: true
+
+    - name: Add HashiCorp apt repo (if enabled)
+      when: local_hashicorp_install
+      become: true
+      block:
+        - name: Add HashiCorp GPG key
+          ansible.builtin.get_url:
+            url: https://apt.releases.hashicorp.com/gpg
+            dest: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            mode: "0644"
+
+        - name: Add HashiCorp apt source
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+            state: present
+
+        - name: Install HashiCorp tools
+          ansible.builtin.apt:
+            name: "{{ local_hashicorp_tools }}"
+            state: present
+            update_cache: true
+
+# Add other OS families here as needed (RedHat/Darwin).
+
+- name: Ensure venv dir exists
+  ansible.builtin.file:
+    path: "{{ local_bootstrap_venv_path | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Create virtualenv for controller clients
+  ansible.builtin.command:
+    cmd: "python3 -m venv {{ local_bootstrap_venv_path }}"
+    creates: "{{ local_bootstrap_venv_path }}/bin/activate"
+
+- name: Upgrade pip/setuptools/wheel in venv
+  ansible.builtin.pip:
+    name: [pip, setuptools, wheel]
+    state: latest
+    virtualenv: "{{ local_bootstrap_venv_path }}"
+
+- name: Install local Python API clients
+  ansible.builtin.pip:
+    name: "{{ local_python_packages }}"
+    state: present
+    virtualenv: "{{ local_bootstrap_venv_path }}"
+
+- name: Usage hint
+  ansible.builtin.debug:
+    msg:
+      - "Activate: source {{ local_bootstrap_venv_path }}/bin/activate"
+      - "Or set ANSIBLE_PYTHON_INTERPRETER={{ local_bootstrap_venv_path }}/bin/python"

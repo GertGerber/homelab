@@ -1,0 +1,41 @@
+---
+# ===== Controller/local bootstrap =====
+local_bootstrap_venv_path: "{{ lookup('env','HOME') }}/.venvs/homelab"
+local_hashicorp_install: true
+local_use_nala: true
+local_packages_common: [git, curl, jq, unzip, ca-certificates, gnupg]
+local_extra_packages: []                # e.g. [htop, ncdu]
+local_hashicorp_tools: [terraform, packer]
+local_python_packages: [proxmoxer, requests]
+
+# ===== SSH Keys Role =====
+ssh_key_path: "~/.ssh/proxmox_ansible"
+ssh_key_type: "ed25519"
+ssh_remote_user: "root"                 # change if needed
+
+# ===== Proxmox Identity via SSH =====
+pve_service_user: "ansible@pve"
+pve_service_user_password: "{{ lookup('env','PVE_SERVICE_USER_PASSWORD') | default('', true) }}"
+pve_service_user_email: "ansible@example.invalid"
+pve_role_name: "AnsibleProv"
+pve_role_privs:
+  - Sys.Audit
+  - Datastore.AllocateSpace
+  - Sys.Modify
+  - VM.Allocate
+  - VM.Config.Disk
+  - VM.Config.HWType
+  - VM.Config.Memory
+  - VM.Config.Network
+  - VM.Config.Options
+  - VM.Monitor
+  - VM.Audit
+  - VM.Console
+  - Pool.Allocate
+  - SDN.Use
+  - Permissions.Modify
+pve_acl_path: "/"
+pve_acl_propagate: true
+pve_token_id: "ansible"
+pve_local_token_file: "{{ playbook_dir }}/../../.proxmox_ansible_token"
+pve_rotate_token_if_local_missing: true
